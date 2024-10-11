@@ -1,85 +1,27 @@
-// Initialize Supabase
-const supabaseUrl = 'https://exmllqrjhnhrssdzgxtj.supabase.co'; 
-const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV4bWxscXJqaG5ocnNzZHpneHRqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Mjg2MzMzMTksImV4cCI6MjA0NDIwOTMxOX0.X1NYjZhA_C-pkVF94rcjXeM7sj-LlFtZEOUYLd7___E';
-const supabase = supabase.createClient(supabaseUrl, supabaseKey); // Correctly initialize
+let startTime;
+let endTime;
 
-document.addEventListener('DOMContentLoaded', () => {
-    const urlInput = document.getElementById('url');
-    const addUrlButton = document.getElementById('add-url');
-    const linksList = document.getElementById('links');
-    const dropArea = document.getElementById('drop-area');
+document.getElementById('user-input').addEventListener('focus', function() {
+    startTime = new Date().getTime();
+});
 
-    // Function to add URL to the list and Supabase
-    const addUrlToList = async (url) => {
-        const listItem = document.createElement('li');
-        listItem.textContent = url;
-        linksList.appendChild(listItem);
+document.getElementById('submit').addEventListener('click', function() {
+    endTime = new Date().getTime();
+    const userInput = document.getElementById('user-input').value;
+    const textToType = document.getElementById('text-to-type').textContent;
 
-        // Add to Supabase
-        await addUrlToDatabase(url);
+    if (userInput === textToType) {
+        const timeTaken = (endTime - startTime) / 1000; // in seconds
+        const wordsTyped = userInput.split(' ').length;
+        const typingSpeed = (wordsTyped / timeTaken) * 60; // words per minute
 
-        urlInput.value = ''; // Clear the input
-    };
-
-    // Function to add URL to Supabase
-    const addUrlToDatabase = async (url) => {
-        const { data, error } = await supabase
-            .from('urls')
-            .insert([{ url }]);
-
-        if (error) {
-            console.error('Error adding URL:', error);
-        } else {
-            console.log('URL added:', data);
-        }
-    };
-
-    // Fetch URLs from Supabase
-    const fetchUrls = async () => {
-        const { data, error } = await supabase
-            .from('urls')
-            .select('*');
-
-        if (error) {
-            console.error('Error fetching URLs:', error);
-        } else {
-            data.forEach(item => {
-                addUrlToList(item.url);
-            });
-        }
-    };
-
-    // Event listeners
-    addUrlButton.addEventListener('click', () => {
-        const url = urlInput.value.trim();
-        if (url) {
-            addUrlToList(url);
-        } else {
-            alert('Please enter a valid URL');
-        }
-    });
-
-    // Drag and drop functionality
-    dropArea.addEventListener('dragover', (event) => {
-        event.preventDefault();
-        dropArea.classList.add('hover');
-    });
-
-    dropArea.addEventListener('dragleave', () => {
-        dropArea.classList.remove('hover');
-    });
-
-    dropArea.addEventListener('drop', (event) => {
-        event.preventDefault();
-        dropArea.classList.remove('hover');
-
-        const url = event.dataTransfer.getData('text/plain');
-        if (url) {
-            addUrlToList(url);
-        }
-    });
-
-    // Fetch URLs on page load
-    fetchUrls();
+        document.getElementById('result').innerHTML = `
+            <h2>Result</h2>
+            <p>Time taken: ${timeTaken.toFixed(2)} seconds</p>
+            <p>Typing speed: ${typingSpeed.toFixed(2)} WPM</p>
+        `;
+    } else {
+        document.getElementById('result').innerHTML = `<p>Text does not match. Please try again.</p>`;
+    }
 });
 
